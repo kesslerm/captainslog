@@ -355,7 +355,7 @@ func ParseHost(buf []byte) (int, string, error) {
 }
 
 func isAlphaNumeric(r rune) bool {
-	return unicode.IsLetter(r) || unicode.IsNumber(r) || string(r) == "-" || string(r) == "_"
+	return unicode.IsLetter(r) || unicode.IsNumber(r) || string(r) == "-" || string(r) == "_" || string(r) == "."
 }
 
 // ParseTag will try to find a syslog tag at the beginning of the
@@ -364,7 +364,7 @@ func isAlphaNumeric(r rune) bool {
 func ParseTag(buf []byte) (int, Tag, error) {
 	var err error
 	var hasPid bool
-	var hasColon bool
+	var hasNonSpaceTagEnd bool
 	var tag Tag
 	var tokenEnd int
 	var offset int
@@ -408,7 +408,7 @@ func ParseTag(buf []byte) (int, Tag, error) {
 			default:
 				offset++
 				tokenEnd = offset
-				hasColon = true
+				hasNonSpaceTagEnd = true
 				goto FoundEndOfTag
 			}
 		}
@@ -421,7 +421,7 @@ func ParseTag(buf []byte) (int, Tag, error) {
 FoundEndOfTag:
 	tag.Tag = string(buf[tokenStart:tokenEnd])
 	if !hasPid {
-		if !hasColon {
+		if !hasNonSpaceTagEnd {
 			tag.Program = tag.Tag
 		} else {
 			tag.Program = string(buf[tokenStart : tokenEnd-1])
